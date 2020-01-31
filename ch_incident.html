@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<link>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Chapel Hill Incident</title>
+    <!--Include Leaflet CSS file in the head section of the document:-->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css"
+          integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+          crossorigin=""/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link  rel="stylesheet" href="./css/dashboard.css">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
+    <style>
+        #mapid {
+            height: 600px;
+        }
+
+        .slider-color {
+            -webkit-appearance: none;
+            width: 80%;
+            height: 15px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+            opacity:0.7;
+            -webkit-transition: opacity .15s ease-in-out;
+            transition: opacity .15s ease-in-out;
+        }
+        .slider-color:hover {
+            opacity:1;
+        }
+        .slider-color::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+        .slider-color::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border: 0;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+
+
+    </style>
+
+</head>
+<body>
+<!--this div is used for visualizing map-->
+<nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Chapel Hill Incidents</a>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <!--left navigation bar-->
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+            <div class="sidebar-sticky">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">
+                            <span data-feather="home"></span>
+                            Filters <span class="sr-only">(current)</span>
+                        </a>
+                    </li>
+                    <!--day time-->
+                    <li class="nav-item">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text">
+                                    <span data-feather="clock"></span>
+                                    Time
+                                </label>
+                            </div>
+                            <select class="custom-select" onchange="map_vis.setTime(this.value);">
+                                <option value="1">Night</option>
+                                <option value="0">Day</option>
+                            </select>
+                        </div>
+                    </li>
+                    <!--victim or not-->
+                    <li class="nav-item">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text">
+                                    <span data-feather="users"></span>
+                                    Any Victim
+                                </label>
+                            </div>
+                            <select class="custom-select" onchange="map_vis.setVictim(this.value);">
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+                    </li>
+                    <!--victim sex: disabled before the victim is selected as yes-->
+                    <li class="nav-item">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text">
+                                    <span data-feather="users"></span>
+                                    Sex
+                                </label>
+                            </div>
+                            <select class="custom-select" disabled="disabled" id="victim_sex" onchange="map_vis.setVictimSex(this.value);">
+                                <option value="F">Female</option>
+                                <option value="M">Male</option>
+                            </select>
+                        </div>
+                    </li>
+                    <!--vitim race: disabled before the victim is selected as yes-->
+                    <li class="nav-item">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text">
+                                    <span data-feather="users"></span>
+                                    Race
+                                </label>
+                            </div>
+                            <select class="custom-select" disabled="disabled" id="victim_race" onchange="map_vis.setVictimRace(this.value);">
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="H">H</option>
+                                <option value="I">I</option>
+                                <option value="O">O</option>
+                                <option value="U">U</option>
+                                <option value="W">W</option>
+                            </select>
+                        </div>
+                    </li>
+                    <!--severity-->
+                    <li class="nav-item">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text">
+                                    <span data-feather="clock"></span>
+                                    Severity
+                                </label>
+                            </div>
+                            <select class="custom-select">
+                                <option value="1">Least Severe</option>
+                                <option value="2">Somewhat Severe</option>
+                                <option value="2">Severe</option>
+                                <option value="2">Very Severe</option>
+                                <option value="2">Extremely Severe</option>
+                            </select>
+                        </div>
+                    </li>
+                    <!--year-->
+                    <li class="nav-item">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text">
+                                    <span data-feather="layers"></span>
+                                    Year
+                                </label>
+                            </div>
+                            <select class="custom-select" onchange="map_vis.setYear(this.value);">
+                                <option value="2017">2017</option>
+                                <option value="2016">2016</option>
+                                <option value="2015">2015</option>
+                                <option value="2014">2014</option>
+                                <option value="2013">2013</option>
+                            </select>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!--right map section-->
+        <main role="main" class="col-md-10 ml-sm-auto col-lg-10 px-4">
+            <div class="pb-2 mb-3"></div>
+
+            <!--leaflet map && map analysis-->
+            <div class="row">
+
+                <!--map-->
+                <div class="col-md-7" id="mapid"></div>
+
+                <!--analysis section-->
+                <div class="col-md-5 container">
+                    <h5>INCIDENT ANALYSIS</h5>
+                    <!--collapse bar-->
+                    <div class="accordion" id="accordionExample">
+                        <!--incident summary-->
+                        <div class="card">
+                            <div class="card-header">
+                                <b>INCIDENT SUMMARY</b>
+                            </div>
+                            <div class="card-body">
+                                <table>
+                                    <tr>
+                                        <th>Incident type</th>
+                                        <th>Average</th>
+                                    </tr>
+                                    <tr>
+                                        <td>violent</td>
+                                        <td>12</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Property</td>
+                                        <td>10</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Quality of Life</td>
+                                        <td>45</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Alarm</td>
+                                        <td>5</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Other</td>
+                                        <td>78</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <!--incident trends-->
+                        <div class="card">
+                            <div class="card-header">
+                                <b>INCIDENT TRENDS</b>
+                            </div>
+                            <div id="incident_type" class="card-body">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--<div class="pb-2 mb-3"></div>-->
+
+            <!--<div class="container">-->
+                <!--&lt;!&ndash;time slider&ndash;&gt;-->
+                <!--<p>Time Slider:-->
+                    <!--<input type="range" min="1" max="100" value="50" class="slider-color" id="id1">-->
+                <!--</p>-->
+            <!--</div>-->
+
+        </main>
+
+    </div>
+
+
+</div>
+
+
+<!--Bootstrap js file-->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<!-- Icons -->
+<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<script>
+    feather.replace()
+</script>
+
+
+<!--leaflet-->
+<script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"
+        integrity="sha512-nMMmRyTVoLYqjP9hrbed9S+FzjZHW5gY1TWCHA5ckwXZBadntCNs8kEqAWdrb9O7rxbCaA4lKTIWjDXZxflOcA=="
+        crossorigin=""></script>
+<!--leaflet.markerCluster-->
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+<!--geoJSON and d3-->
+<script src="https://d3js.org/d3-array.v1.min.js"></script>
+<!--d3 must be version 5 to support csv function in ch_incident.js-->
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://d3js.org/d3-geo.v1.min.js"></script>
+<script src="ch_incident.js"></script>
+<script>
+    map_vis = new MapVis();
+    map_vis.render();
+</script>
+</body>
+</html>
